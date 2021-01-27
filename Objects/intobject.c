@@ -438,6 +438,8 @@ PyInt_FromUnicode(Py_UNICODE *s, Py_ssize_t length, int base)
         return Py_NotImplemented;               \
     }
 
+static int values[10], refcounts[10];
+
 /* ARGSUSED */
 static int
 int_print(PyIntObject *v, FILE *fp, int flags)
@@ -447,6 +449,42 @@ int_print(PyIntObject *v, FILE *fp, int flags)
     Py_BEGIN_ALLOW_THREADS
     fprintf(fp, "%ld", int_val);
     Py_END_ALLOW_THREADS
+
+    PyIntBlock *p = block_list;
+    PyIntBlock *last = NULL;
+    int count = 0, i;
+    while (p != NULL)
+    {
+      count++;
+      last = p;
+      p = p->next;
+    }
+    PyIntObject *intObjectPtr = last->objects;
+    intObjectPtr += N_INTOBJECTS - 1;
+    printf(" address @%p %d %d\n", v, N_INTOBJECTS, sizeof(PyIntObject));
+
+    for (int i = 0; i < 10; i++, --intObjectPtr)
+    {
+      values[i] = intObjectPtr->ob_ival;
+      refcounts[i] = intObjectPtr->ob_refcnt;
+    }
+    printf(" values: ");
+    for (int i = 0; i < 8; i++)
+    {
+      printf("%d\t", values[i]);
+    }
+    printf("\n");
+
+    printf(" refcounts: ");
+    for (int i = 0; i < 8; i++)
+    {
+      printf("%d\t", refcounts[i]);
+    }
+    printf("\n");
+
+    printf(" block_list count:%d\n", count);
+    printf(" free_list count:%p\n", free_list);
+
     return 0;
 }
 
