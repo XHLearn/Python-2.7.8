@@ -59,6 +59,7 @@ fill_free_list(void)
     p = &((PyIntBlock *)p)->objects[0];
     q = p + N_INTOBJECTS;
     while (--q > p)
+        // 这里使用 q->ob_type 指向上一个的地址
         Py_TYPE(q) = (struct _typeobject *)(q-1);
     Py_TYPE(q) = NULL;
     return p + N_INTOBJECTS - 1;
@@ -450,40 +451,25 @@ int_print(PyIntObject *v, FILE *fp, int flags)
     fprintf(fp, "%ld", int_val);
     Py_END_ALLOW_THREADS
 
+    printf(" address @%p %d %d\n", v, N_INTOBJECTS, sizeof(PyIntObject));
     PyIntBlock *p = block_list;
-    PyIntBlock *last = NULL;
-    int count = 0, i;
+    int count = 0;
     while (p != NULL)
     {
+      PyIntObject *intObjectPtr = p->objects;
+      printf("block_list[%d]: @%p object@%p\n", count, p, intObjectPtr);
+      for (int i = 0; i < N_INTOBJECTS; i++)
+      {
+          printf("  object[%d]: @%p val:%d ref:%d ad:%p\n", i, intObjectPtr, intObjectPtr->ob_ival, intObjectPtr->ob_refcnt, intObjectPtr->ob_type);
+          intObjectPtr += 1;
+      }
+      printf("\n");
+
       count++;
-      last = p;
       p = p->next;
     }
-    PyIntObject *intObjectPtr = last->objects;
-    intObjectPtr += N_INTOBJECTS - 1;
-    printf(" address @%p %d %d\n", v, N_INTOBJECTS, sizeof(PyIntObject));
-
-    for (int i = 0; i < 10; i++, --intObjectPtr)
-    {
-      values[i] = intObjectPtr->ob_ival;
-      refcounts[i] = intObjectPtr->ob_refcnt;
-    }
-    printf(" values: ");
-    for (int i = 0; i < 8; i++)
-    {
-      printf("%d\t", values[i]);
-    }
-    printf("\n");
-
-    printf(" refcounts: ");
-    for (int i = 0; i < 8; i++)
-    {
-      printf("%d\t", refcounts[i]);
-    }
-    printf("\n");
-
-    printf(" block_list count:%d\n", count);
-    printf(" free_list count:%p\n", free_list);
+    printf("block_list count: %d\n", count);
+    printf("free_list count: @%p\n", free_list);
 
     return 0;
 }
