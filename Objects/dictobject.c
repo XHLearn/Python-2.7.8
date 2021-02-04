@@ -514,6 +514,62 @@ _PyDict_MaybeUntrack(PyObject *op)
     _PyObject_GC_UNTRACK(op);
 }
 
+static void ShowDictObject(PyDictObject *mp)
+{
+  PyDictEntry *entry = mp->ma_table;
+  int count = mp->ma_mask + 1;
+
+  // 输出key
+  printf(" mask:%d\n", mp->ma_mask);
+  printf("  key:");
+  for (int i = 0; i < count; i++)
+  {
+    PyObject *key = entry->me_key;
+    PyObject *value = entry->me_value;
+    if (key == NULL)
+    {
+      printf("NULL");
+    }
+    else
+    {
+      if (PyString_Check(key))
+      {
+        if (PyString_AsString(key)[0] == "<")
+          printf("dummy");
+        else
+          (key->ob_type)->tp_print(key, stdout, 0);
+      }
+      else
+        (key->ob_type)->tp_print(key, stdout, 0);
+    }
+
+    ++entry;
+    printf("\t");
+  }
+
+  // 输出value
+  printf("\n value:");
+  entry = mp->ma_table;
+  for (int i = 0; i < count; i++)
+  {
+    PyObject *key = entry->me_key;
+    PyObject *value = entry->me_value;
+    if (value == NULL)
+    {
+      printf("NULL");
+    }
+    else
+    {
+      (key->ob_type)->tp_print(value, stdout, 0);
+    }
+
+    printf("\t");
+    ++entry;
+  }
+  printf("\n");
+}
+
+
 /*
 Internal routine to insert a new item into the table when you have entry object.
 Used by insertdict.
@@ -1089,6 +1145,8 @@ dict_print(register PyDictObject *mp, register FILE *fp, register int flags)
     fprintf(fp, "}");
     Py_END_ALLOW_THREADS
     Py_ReprLeave((PyObject*)mp);
+
+    ShowDictObject(mp); // test show info
     return 0;
 }
 
