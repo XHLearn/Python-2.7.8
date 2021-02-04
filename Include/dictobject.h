@@ -76,16 +76,16 @@ struct _dictobject {
      * We store the mask instead of the size because the mask is more
      * frequently needed.
      */
-    Py_ssize_t ma_mask;
+    Py_ssize_t ma_mask; // PyDictObject所拥有的entry的数量
 
     /* ma_table points to ma_smalltable for small tables, else to
      * additional malloc'ed memory.  ma_table is never NULL!  This rule
      * saves repeated runtime null-tests in the workhorse getitem and
      * setitem calls.
      */
-    PyDictEntry *ma_table;
+    PyDictEntry *ma_table;  // 当为小dict时:指向ma_smalltable,大dict时:重开一偏内存并指向他
     PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
-    PyDictEntry ma_smalltable[PyDict_MINSIZE];
+    PyDictEntry ma_smalltable[PyDict_MINSIZE];  // 小dict
 };
 
 PyAPI_DATA(PyTypeObject) PyDict_Type;

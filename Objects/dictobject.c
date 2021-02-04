@@ -328,14 +328,19 @@ lookdict(PyDictObject *mp, PyObject *key, register long hash)
     register int cmp;
     PyObject *startkey;
 
+    // 定位冲探测链的第一个entry
     i = (size_t)hash & mask;
     ep = &ep0[i];
+
+    // unused态 or 搜索匹配
     if (ep->me_key == NULL || ep->me_key == key)
         return ep;
 
+    // 第一个entry处于dummy状态，设置freeslot
     if (ep->me_key == dummy)
         freeslot = ep;
     else {
+        // 检查Active态的entry
         if (ep->me_hash == hash) {
             startkey = ep->me_key;
             Py_INCREF(startkey);
@@ -362,12 +367,19 @@ lookdict(PyDictObject *mp, PyObject *key, register long hash)
     /* In the loop, me_key == dummy is by far (factor of 100s) the
        least likely outcome, so test for that last. */
     for (perturb = hash; ; perturb >>= PERTURB_SHIFT) {
+        // 寻找探测链上的下一个entry
         i = (i << 2) + i + perturb + 1;
         ep = &ep0[i & mask];
+
+        // Unused 搜索失败
         if (ep->me_key == NULL)
             return freeslot == NULL ? ep : freeslot;
+
+        // key引用相同 搜索成功
         if (ep->me_key == key)
             return ep;
+
+        // 检测值是否相同
         if (ep->me_hash == hash && ep->me_key != dummy) {
             startkey = ep->me_key;
             Py_INCREF(startkey);
@@ -513,16 +525,20 @@ insertdict_by_entry(register PyDictObject *mp, PyObject *key, long hash,
     PyObject *old_value;
 
     MAINTAIN_TRACKING(mp, key, value);
+    // 搜索成功 Active态，更新value即可
     if (ep->me_value != NULL) {
         old_value = ep->me_value;
         ep->me_value = value;
         Py_DECREF(old_value); /* which **CAN** re-enter */
         Py_DECREF(key);
     }
+
+    // 搜索失败
     else {
+        // Unused态
         if (ep->me_key == NULL)
             mp->ma_fill++;
-        else {
+        else { // Dummy态
             assert(ep->me_key == dummy);
             Py_DECREF(dummy);
         }
@@ -659,12 +675,12 @@ dictresize(PyDictObject *mp, Py_ssize_t minused)
     /* Copy the data over; this is refcount-neutral for active entries;
        dummy entries aren't copied over, of course */
     for (ep = oldtable; i > 0; ep++) {
-        if (ep->me_value != NULL) {             /* active entry */
+        if (ep->me_value != NULL) {             /* active entry */ // insert
             --i;
             insertdict_clean(mp, ep->me_key, (long)ep->me_hash,
                              ep->me_value);
         }
-        else if (ep->me_key != NULL) {          /* dummy entry */
+        else if (ep->me_key != NULL) {          /* dummy entry */  //丢弃
             --i;
             assert(ep->me_key == dummy);
             Py_DECREF(ep->me_key);
@@ -785,6 +801,7 @@ dict_set_item_by_hash_or_entry(register PyObject *op, PyObject *key,
      */
     if (!(mp->ma_used > n_used && mp->ma_fill*3 >= (mp->ma_mask+1)*2))
         return 0;
+    // 如果装载率大于2/3，调整dict的内存空间
     return dictresize(mp, (mp->ma_used > 50000 ? 2 : 4) * mp->ma_used);
 }
 
