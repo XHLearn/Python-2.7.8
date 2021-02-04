@@ -521,7 +521,7 @@ static void ShowDictObject(PyDictObject *mp)
 
   // 输出key
   printf(" mask:%d\n", mp->ma_mask);
-  printf("  key:");
+  printf("   key:");
   for (int i = 0; i < count; i++)
   {
     PyObject *key = entry->me_key;
@@ -566,7 +566,7 @@ static void ShowDictObject(PyDictObject *mp)
     printf("\t");
     ++entry;
   }
-  printf("\n");
+  printf("\n numfree:%d\n", numfree);
 }
 
 
@@ -1146,7 +1146,7 @@ dict_print(register PyDictObject *mp, register FILE *fp, register int flags)
     Py_END_ALLOW_THREADS
     Py_ReprLeave((PyObject*)mp);
 
-    ShowDictObject(mp); // test show info
+    // ShowDictObject(mp); // test show info
     return 0;
 }
 
