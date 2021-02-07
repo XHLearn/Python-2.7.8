@@ -5,7 +5,8 @@
 
 typedef struct _stringobject
 {
-    PyObject_HEAD int length;
+    PyObject_HEAD;
+    int length;
     long ob_shash;
     char str[STR_SIZE];
 } PyStringObject;

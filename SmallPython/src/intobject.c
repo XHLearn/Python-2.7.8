@@ -1,4 +1,5 @@
 #include "Python.h"
+#include <stdio.h>
 
 static void int_print(PyIntObject *v)
 {
