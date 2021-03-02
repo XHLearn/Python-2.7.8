@@ -20,3 +20,5 @@ Makefile.pre
 pyconfig.h
 python-gdb.py
 Makefile
+
+MyTest/
