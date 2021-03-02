@@ -321,13 +321,18 @@ w_object(PyObject *v, WFILE *p)
 #endif
     else if (PyString_CheckExact(v)) {
         if (p->strings && PyString_CHECK_INTERNED(v)) {
+            // 获取PyStringObject对象在strings中的序号
             PyObject *o = PyDict_GetItem(p->strings, v);
+
+            // intern字符串的非首次写入
             if (o) {
                 long w = PyInt_AsLong(o);
                 w_byte(TYPE_STRINGREF, p);
                 w_long(w, p);
                 goto exit;
             }
+
+            // intern字符串的首次写入
             else {
                 int ok;
                 o = PyInt_FromSsize_t(PyDict_Size(p->strings));
