@@ -9,21 +9,21 @@ extern "C" {
 /* Bytecode object */
 typedef struct {
     PyObject_HEAD
-    int co_argcount;		/* #arguments, except *args */
-    int co_nlocals;		/* #local variables */
-    int co_stacksize;		/* #entries needed for evaluation stack */
+    int co_argcount;		/* #arguments, except *args */              //位置参数geshu
+    int co_nlocals;		/* #local variables */                          //局部变量个数
+    int co_stacksize;		/* #entries needed for evaluation stack */  //执行该CodeBlock需要的栈空间
     int co_flags;		/* CO_..., see below */
-    PyObject *co_code;		/* instruction opcodes */
-    PyObject *co_consts;	/* list (constants used) */
-    PyObject *co_names;		/* list of strings (names used) */
-    PyObject *co_varnames;	/* tuple of strings (local variable names) */
-    PyObject *co_freevars;	/* tuple of strings (free variable names) */
-    PyObject *co_cellvars;      /* tuple of strings (cell variable names) */
+    PyObject *co_code;		/* instruction opcodes */                   //编译的字节码指令序列，PyStringObject形式存在
+    PyObject *co_consts;	/* list (constants used) */                 //代码块所有常量
+    PyObject *co_names;		/* list of strings (names used) */          //代码块所有符号
+    PyObject *co_varnames;	/* tuple of strings (local variable names) */   //局部变量集合
+    PyObject *co_freevars;	/* tuple of strings (free variable names) */    //闭包需要的数据
+    PyObject *co_cellvars;      /* tuple of strings (cell variable names) *///代码块中内部使用函数所引用的局部变量名集合
     /* The rest doesn't count for hash/cmp */
-    PyObject *co_filename;	/* string (where it was loaded from) */
-    PyObject *co_name;		/* string (name, for reference) */
-    int co_firstlineno;		/* first source line number */
-    PyObject *co_lnotab;	/* string (encoding addr<->lineno mapping) See
+    PyObject *co_filename;	/* string (where it was loaded from) */     //代码块对应的文件路径
+    PyObject *co_name;		/* string (name, for reference) */          //代码块名-函数名/类名
+    int co_firstlineno;		/* first source line number */              //代码块对齐py文件中的起始行
+    PyObject *co_lnotab;	/* string (encoding addr<->lineno mapping) See  //字节码指令与py文件中source code行号对应关系
 				   Objects/lnotab_notes.txt for details. */
     void *co_zombieframe;     /* for optimization only (see frameobject.c) */
     PyObject *co_weakreflist;   /* to support weakrefs to code objects */
