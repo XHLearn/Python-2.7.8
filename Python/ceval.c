@@ -3026,8 +3026,10 @@ exit_eval_frame:
 
 PyObject *
 PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
-           PyObject **args, int argcount, PyObject **kws, int kwcount,
-           PyObject **defs, int defcount, PyObject *closure)
+            PyObject **args, int argcount,   // 位置参数相关信息
+            PyObject **kws, int kwcount,     // 键参数相关信息
+            PyObject **defs, int defcount,   // 函数定义默认值相关信息
+            PyObject *closure)
 {
     register PyFrameObject *f;
     register PyObject *retval = NULL;
@@ -3056,9 +3058,11 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
         int n = argcount;
         PyObject *kwdict = NULL;
         if (co->co_flags & CO_VARKEYWORDS) {
+            // 键参数
             kwdict = PyDict_New();
             if (kwdict == NULL)
                 goto fail;
+            // 找到键参数f_localsplus位置，设置为dict
             i = co->co_argcount;
             if (co->co_flags & CO_VARARGS)
                 i++;
@@ -3078,6 +3082,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
             }
             n = co->co_argcount;
         }
+        // 设置min(argcount, co->co_argcount)个位置参数
         for (i = 0; i < n; i++) {
             x = args[i];
             Py_INCREF(x);
@@ -3087,6 +3092,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
             u = PyTuple_New(argcount - n);
             if (u == NULL)
                 goto fail;
+            // 找到位置参数f_localsplus位置，设置为Tuple，并设置值
             SETLOCAL(co->co_argcount, u);
             for (i = n; i < argcount; i++) {
                 x = args[i];
@@ -3094,6 +3100,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
                 PyTuple_SET_ITEM(u, i-n, x);
             }
         }
+        // 遍历传入的键参数
         for (i = 0; i < kwcount; i++) {
             PyObject **co_varnames;
             PyObject *keyword = kws[2*i];
@@ -3111,6 +3118,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
             }
             /* Speed hack: do raw pointer compares. As names are
                normally interned this should almost always hit. */
+            // 找到传入的键参数在函数定义参数的位置
             co_varnames = ((PyTupleObject *)(co->co_varnames))->ob_item;
             for (j = 0; j < co->co_argcount; j++) {
                 PyObject *nm = co_varnames[j];
@@ -3139,7 +3147,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
                 }
                 goto fail;
             }
-            PyDict_SetItem(kwdict, keyword, value);
+            PyDict_SetItem(kwdict, keyword, value); // 没有找到的话设置到dict中
             continue;
           kw_found:
             if (GETLOCAL(j) != NULL) {
@@ -3156,9 +3164,10 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
                 goto fail;
             }
             Py_INCREF(value);
-            SETLOCAL(j, value);
+            SETLOCAL(j, value); // 在函数定义中找到对应声明，直接设置到f_localsplus
         }
         if (argcount < co->co_argcount) {
+            // 传入的参数小于定义的参数
             int m = co->co_argcount - defcount;
             for (i = argcount; i < m; i++) {
                 if (GETLOCAL(i) == NULL) {
@@ -3181,6 +3190,7 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
                 i = n - m;
             else
                 i = 0;
+            // 剩下的参数使用函数定义的参数
             for (; i < defcount; i++) {
                 if (GETLOCAL(m+i) == NULL) {
                     PyObject *def = defs[i];
