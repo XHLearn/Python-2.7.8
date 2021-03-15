@@ -4,6 +4,7 @@ MyPython/
 *.pyo
 *.o
 *.log
+*.gcda
 
 config.status
 libpython2.7.a

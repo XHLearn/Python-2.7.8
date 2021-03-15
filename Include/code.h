@@ -9,7 +9,7 @@ extern "C" {
 /* Bytecode object */
 typedef struct {
     PyObject_HEAD
-    int co_argcount;		/* #arguments, except *args */              //位置参数geshu
+    int co_argcount;		/* #arguments, except *args */              //位置参数个数
     int co_nlocals;		/* #local variables */                          //局部变量个数
     int co_stacksize;		/* #entries needed for evaluation stack */  //执行该CodeBlock需要的栈空间
     int co_flags;		/* CO_..., see below */
