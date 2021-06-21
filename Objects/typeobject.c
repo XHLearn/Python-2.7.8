@@ -2060,6 +2060,7 @@ type_init(PyObject *cls, PyObject *args, PyObject *kwds)
 static PyObject *
 type_new(PyTypeObject *metatype, PyObject *args, PyObject *kwds)
 {
+    // metatype：type   args：(类名,基类列表,属性值) name, bases, method
     PyObject *name, *bases, *dict;
     static char *kwlist[] = {"name", "bases", "dict", 0};
     PyObject *slots, *tmp, *newslots;
@@ -4072,6 +4073,11 @@ PyType_Ready(PyTypeObject *type)
         if (PyType_Check(b))
             inherit_slots(type, (PyTypeObject *)b);
     }
+
+    // if(strcmp(type->tp_name, "bool")== 0)
+    //     printf("bool nb_add: 0x%X\n",*(type->tp_as_number->nb_add));
+    // if(strcmp(type->tp_name,"int")== 0)
+    //     printf("int nb_add 0x%X\n", *(type->tp_as_number->nb_add));
 
     /* Sanity check for tp_free. */
     if (PyType_IS_GC(type) && (type->tp_flags & Py_TPFLAGS_BASETYPE) &&

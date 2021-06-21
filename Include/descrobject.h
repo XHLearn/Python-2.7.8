@@ -23,9 +23,9 @@ typedef PyObject *(*wrapperfunc_kwds)(PyObject *self, PyObject *args,
                                       void *wrapped, PyObject *kwds);
 
 struct wrapperbase {
-    char *name;
-    int offset;
-    void *function;
+    char *name;         // 操作对应名称
+    int offset;         // 操作的函数地址在PyHeapTypeObject中的偏移量
+    void *function;     // 指向一种称为 slot function的函数
     wrapperfunc wrapper;
     char *doc;
     int flags;

@@ -1,8 +1,21 @@
 {
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true,
+        "**/__pycache__": true,
+        "**/*.pyc": true,
+        "**/*.pyo": true,
+        "**/*.o": true,
+        "MyPython": true,
+    },
     "files.associations": {
         "array": "cpp",
         "deque": "cpp",
         "vector": "cpp",
         "string_view": "cpp"
-    }
+    },
+    "python.pythonPath": "/bin/python",
 }

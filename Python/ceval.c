@@ -1934,10 +1934,10 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             break;
 
         case BUILD_CLASS:
-            u = TOP();
-            v = SECOND();
-            w = THIRD();
-            STACKADJ(-2);
+            u = TOP();      // class的元信息f_locals
+            v = SECOND();   // class的基类
+            w = THIRD();    // class名
+            STACKADJ(-2);   // 栈顶指针向上移动两个位置
             x = build_class(u, v, w);
             SET_TOP(x);
             Py_DECREF(u);
@@ -4630,11 +4630,13 @@ build_class(PyObject *methods, PyObject *bases, PyObject *name)
 {
     PyObject *metaclass = NULL, *result, *base;
 
+    // 定义class时是否指定了metaclass
     if (PyDict_Check(methods))
         metaclass = PyDict_GetItemString(methods, "__metaclass__");
     if (metaclass != NULL)
         Py_INCREF(metaclass);
     else if (PyTuple_Check(bases) && PyTuple_GET_SIZE(bases) > 0) {
+        // 选择class的第一基类的type作为metaclass
         base = PyTuple_GET_ITEM(bases, 0);
         metaclass = PyObject_GetAttrString(base, "__class__");
         if (metaclass == NULL) {
