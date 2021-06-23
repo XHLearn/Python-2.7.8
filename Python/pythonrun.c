@@ -182,21 +182,21 @@ Py_InitializeEx(int install_sigs)
 
     _PyRandom_Init();
 
-    interp = PyInterpreterState_New();
+    interp = PyInterpreterState_New();  // 创建一个进程对象
     if (interp == NULL)
         Py_FatalError("Py_Initialize: can't make first interpreter");
 
-    tstate = PyThreadState_New(interp);
+    tstate = PyThreadState_New(interp); // 进程中创建一个线程对象
     if (tstate == NULL)
         Py_FatalError("Py_Initialize: can't make first thread");
     (void) PyThreadState_Swap(tstate);
 
-    _Py_ReadyTypes();
+    _Py_ReadyTypes();       // python类型系统初始化
 
-    if (!_PyFrame_Init())
+    if (!_PyFrame_Init())   // 设置全局变量 builtin PyStringObject
         Py_FatalError("Py_Initialize: can't init frames");
 
-    if (!_PyInt_Init())
+    if (!_PyInt_Init())     // 初始化small_ints
         Py_FatalError("Py_Initialize: can't init ints");
 
     if (!_PyLong_Init())

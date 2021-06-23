@@ -44,9 +44,9 @@ static int autoTLSkey = 0;
 #define HEAD_UNLOCK() /* Nothing */
 #endif
 
-static PyInterpreterState *interp_head = NULL;
+static PyInterpreterState *interp_head = NULL; // 全局的管理 PyInterpreterState 对象链表
 
-PyThreadState *_PyThreadState_Current = NULL;
+PyThreadState *_PyThreadState_Current = NULL;   // 当前活动的线程 PyThreadState 对象
 PyThreadFrameGetter _PyThreadState_GetFrame = NULL;
 
 #ifdef WITH_THREAD
@@ -158,10 +158,12 @@ new_threadstate(PyInterpreterState *interp, int init)
 {
     PyThreadState *tstate = (PyThreadState *)malloc(sizeof(PyThreadState));
 
+    // 设置获得线程中函数调用栈的操作
     if (_PyThreadState_GetFrame == NULL)
         _PyThreadState_GetFrame = threadstate_getframe;
 
     if (tstate != NULL) {
+        // 关联 PyInterpreterState 对象
         tstate->interp = interp;
 
         tstate->frame = NULL;
@@ -200,7 +202,7 @@ new_threadstate(PyInterpreterState *interp, int init)
 
         HEAD_LOCK();
         tstate->next = interp->tstate_head;
-        interp->tstate_head = tstate;
+        interp->tstate_head = tstate; // 在 PyInterpreterState 中关联 PyThreadState对象
         HEAD_UNLOCK();
     }
 

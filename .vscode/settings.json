@@ -10,12 +10,14 @@
         "**/*.pyo": true,
         "**/*.o": true,
         "MyPython": true,
+        "SmallPython": true,
     },
     "files.associations": {
         "array": "cpp",
         "deque": "cpp",
         "vector": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "typeinfo": "c"
     },
     "python.pythonPath": "/bin/python",
 }
