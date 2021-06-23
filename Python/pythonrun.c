@@ -207,7 +207,7 @@ Py_InitializeEx(int install_sigs)
 
     _PyFloat_Init();
 
-    interp->modules = PyDict_New();
+    interp->modules = PyDict_New(); // 维护系统所有的module == sys.moduels
     if (interp->modules == NULL)
         Py_FatalError("Py_Initialize: can't make modules dictionary");
     interp->modules_reloading = PyDict_New();
@@ -219,14 +219,15 @@ Py_InitializeEx(int install_sigs)
     _PyUnicode_Init();
 #endif
 
-    bimod = _PyBuiltin_Init();
+    bimod = _PyBuiltin_Init();  // 创建 builtin mudule
     if (bimod == NULL)
         Py_FatalError("Py_Initialize: can't initialize __builtin__");
-    interp->builtins = PyModule_GetDict(bimod);
+    interp->builtins = PyModule_GetDict(bimod);     // 关联到builtins
     if (interp->builtins == NULL)
         Py_FatalError("Py_Initialize: can't initialize builtins dict");
     Py_INCREF(interp->builtins);
 
+    // 同样设置sys module
     sysmod = _PySys_Init();
     if (sysmod == NULL)
         Py_FatalError("Py_Initialize: can't initialize sys");
@@ -234,12 +235,15 @@ Py_InitializeEx(int install_sigs)
     if (interp->sysdict == NULL)
         Py_FatalError("Py_Initialize: can't initialize sys dict");
     Py_INCREF(interp->sysdict);
+    // 备份sys module
     _PyImport_FixupExtension("sys", "sys");
+    // 设置模块搜索路径 == sys.path
     PySys_SetPath(Py_GetPath());
+    // 设置sys.modules=interp->modules
     PyDict_SetItemString(interp->sysdict, "modules",
                          interp->modules);
 
-    _PyImport_Init();
+    _PyImport_Init();   // 初始化 import 机制
 
     /* initialize builtin exceptions */
     _PyExc_Init();
@@ -750,13 +754,13 @@ PyRun_AnyFileExFlags(FILE *fp, const char *filename, int closeit,
     if (filename == NULL)
         filename = "???";
     if (Py_FdIsInteractive(fp, filename)) {
-        int err = PyRun_InteractiveLoopFlags(fp, filename, flags);
+        int err = PyRun_InteractiveLoopFlags(fp, filename, flags);  // 交互式运行
         if (closeit)
             fclose(fp);
         return err;
     }
     else
-        return PyRun_SimpleFileExFlags(fp, filename, closeit, flags);
+        return PyRun_SimpleFileExFlags(fp, filename, closeit, flags);   // 脚本运行
 }
 
 int
@@ -835,12 +839,14 @@ PyRun_InteractiveOneFlags(FILE *fp, const char *filename, PyCompilerFlags *flags
         else if (PyString_Check(w))
             ps2 = PyString_AsString(w);
     }
+    // 编译用户在交互式环境下输入的python语句
     arena = PyArena_New();
     if (arena == NULL) {
         Py_XDECREF(v);
         Py_XDECREF(w);
         return -1;
     }
+    // 构造抽象语法树AST
     mod = PyParser_ASTFromFile(fp, filename,
                                Py_single_input, ps1, ps2,
                                flags, &errcode, arena);
@@ -1351,7 +1357,7 @@ PyRun_FileExFlags(FILE *fp, const char *filename, int start, PyObject *globals,
     PyArena *arena = PyArena_New();
     if (arena == NULL)
         return NULL;
-
+    // 编译
     mod = PyParser_ASTFromFile(fp, filename, start, 0, 0,
                                flags, NULL, arena);
     if (closeit)
@@ -1371,9 +1377,11 @@ run_mod(mod_ty mod, const char *filename, PyObject *globals, PyObject *locals,
 {
     PyCodeObject *co;
     PyObject *v;
+    // 基于AST编译字节码指令序列，创建PyCodeObject对象
     co = PyAST_Compile(mod, filename, flags, arena);
     if (co == NULL)
         return NULL;
+    // 创建 PyFrameobject对象,执行 PyCodeObject对象中的字节码指令序列
     v = PyEval_EvalCode(co, globals, locals);
     Py_DECREF(co);
     return v;

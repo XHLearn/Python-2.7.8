@@ -62,13 +62,16 @@ Py_InitModule4(const char *name, PyMethodDef *methods, const char *doc,
             _Py_PackageContext = NULL;
         }
     }
+    // 创建module对象
     if ((m = PyImport_AddModule(name)) == NULL)
         return NULL;
+    // 设置module中的对应关系 md_dict
     d = PyModule_GetDict(m);
     if (methods != NULL) {
         n = PyString_FromString(name);
         if (n == NULL)
             return NULL;
+        // 遍历 builtin_methods 中的操作集合
         for (ml = methods; ml->ml_name != NULL; ml++) {
             if ((ml->ml_flags & METH_CLASS) ||
                 (ml->ml_flags & METH_STATIC)) {
@@ -78,6 +81,7 @@ Py_InitModule4(const char *name, PyMethodDef *methods, const char *doc,
                 Py_DECREF(n);
                 return NULL;
             }
+            // 创建PyCFunctionObject对象，对函数指针的包装
             v = PyCFunction_NewEx(ml, passthrough, n);
             if (v == NULL) {
                 Py_DECREF(n);

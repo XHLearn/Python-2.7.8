@@ -2667,11 +2667,13 @@ PyObject *
 _PyBuiltin_Init(void)
 {
     PyObject *mod, *dict, *debug;
+    // 创建PyModuleObject并设置 __builtin__
     mod = Py_InitModule4("__builtin__", builtin_methods,
                          builtin_doc, (PyObject *)NULL,
                          PYTHON_API_VERSION);
     if (mod == NULL)
         return NULL;
+    // 将所有python内建类型添加到 __builtin__ module
     dict = PyModule_GetDict(mod);
 
 #ifdef Py_TRACE_REFS
