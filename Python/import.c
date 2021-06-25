@@ -1902,25 +1902,25 @@ load_module(char *name, FILE *fp, char *pathname, int type, PyObject *loader)
 
     switch (type) {
 
-    case PY_SOURCE:
+    case PY_SOURCE:     // py
         m = load_source_module(name, pathname, fp);
         break;
 
-    case PY_COMPILED:
+    case PY_COMPILED:   // pyc
         m = load_compiled_module(name, pathname, fp);
         break;
 
 #ifdef HAVE_DYNAMIC_LOADING
-    case C_EXTENSION:
+    case C_EXTENSION:   // dll / pyd / so
         m = _PyImport_LoadDynamicModule(name, pathname, fp);
         break;
 #endif
 
-    case PKG_DIRECTORY:
+    case PKG_DIRECTORY: // package
         m = load_package(name, pathname);
         break;
 
-    case C_BUILTIN:
+    case C_BUILTIN: // 内建module
     case PY_FROZEN:
         if (pathname != NULL && pathname[0] != '\0')
             name = pathname;
@@ -2217,10 +2217,11 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
     if (buf == NULL) {
         return PyErr_NoMemory();
     }
+    // 获取import动作发生的package环境
     parent = get_parent(globals, buf, &buflen, level);
     if (parent == NULL)
         goto error_exit;
-
+    // 解析module的"路径"结构，依次加载每一个package/module
     head = load_next(parent, level < 0 ? Py_None : parent, &name, buf,
                         &buflen);
     if (head == NULL)
@@ -2247,7 +2248,7 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
                         "Empty module name");
         goto error_exit;
     }
-
+    // 处理 from * import *
     if (fromlist != NULL) {
         int b = (fromlist == Py_None) ? 0 : PyObject_IsTrue(fromlist);
         if (b < 0) {
@@ -2653,7 +2654,7 @@ add_submodule(PyObject *mod, PyObject *submod, char *fullname, char *subname,
 static PyObject *
 import_submodule(PyObject *mod, char *subname, char *fullname)
 {
-    PyObject *modules = PyImport_GetModuleDict();
+    PyObject *modules = PyImport_GetModuleDict();   // sys.modules
     PyObject *m = NULL;
 
     /* Require:
@@ -2662,6 +2663,7 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
     */
 
     if ((m = PyDict_GetItemString(modules, fullname)) != NULL) {
+        // fullname已被加载
         Py_INCREF(m);
     }
     else {
@@ -2670,6 +2672,7 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
         struct filedescr *fdp;
         FILE *fp = NULL;
 
+        // 获取path
         if (mod == Py_None)
             path = NULL;
         else {
@@ -2686,6 +2689,8 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
             return PyErr_NoMemory();
         }
         buf[0] = '\0';
+        // 搜索module fp:指向打开的module文件   buf:操作系统存放的完整路径
+        // fdp:module的元信息   filedescr 类型
         fdp = find_module(fullname, subname, path, buf, MAXPATHLEN+1,
                           &fp, &loader);
         Py_XDECREF(path);
@@ -2697,10 +2702,12 @@ import_submodule(PyObject *mod, char *subname, char *fullname)
             Py_INCREF(Py_None);
             return Py_None;
         }
+        // 加载module
         m = load_module(fullname, fp, buf, fdp->type, loader);
         Py_XDECREF(loader);
         if (fp)
             fclose(fp);
+        // 添加到sys.modules中
         if (!add_submodule(mod, m, fullname, subname, modules)) {
             Py_XDECREF(m);
             m = NULL;
